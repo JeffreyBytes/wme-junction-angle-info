@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          WME Junction Angle Info
 // @description   Show the angle between two selected (and connected) segments
-// @include       /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$
+// @include       /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
 // @version       2.1.9
 // @grant         none
 // @namespace     https://greasyfork.org/scripts/35547-wme-junction-angle-info/
