@@ -4,6 +4,7 @@
 // @include       /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
 // @version       2.1.9
 // @grant         none
+// @require       https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @namespace     https://greasyfork.org/scripts/35547-wme-junction-angle-info/
 // @copyright     2018 seb-d59, 2016 Michael Wikberg <waze@wikberg.fi>
 // @license       CC-BY-NC-SA
@@ -32,6 +33,7 @@
 /*jshint trailing:true, forin:true, noempty:true, maxparams:7, maxerr:100, eqeqeq:true, strict:true, undef:true */
 /*jshint bitwise:true, newcap:true, immed:true, onevar:true, browser:true, nonbsp:true, freeze:true */
 /*global I18n, console, $*/
+/* global WazeWrap */
 
 
 function run_ja() {
@@ -471,68 +473,12 @@ function run_ja() {
 	}
 
 	function createToggler() {
-		// script group's toggler----------------
-		var oldTogglers = document.querySelectorAll('.togglers');
-		oldTogglers.forEach(function (elt, idx) {
-			if (elt.id != "toolboxUl") {
-				// if script group dosn't exist we create them.
-				if (oldTogglers[idx].querySelector('.layer-switcher-group_scripts') === null) {
-					var newScriptsToggler = document.createElement('li');
-					newScriptsToggler.className = 'group';
-					newScriptsToggler.innerHTML = '<div class="controls-container main toggler">\
-					<input class="layer-switcher-group_scripts toggle" id="layer-switcher-group_scripts" type="checkbox">\
-					<label for="layer-switcher-group_scripts">\
-					<span class="label-text">Scripts</span>\
-					</label>\
-					</div>\
-					<ul class="children">\
-				</ul>';
-					oldTogglers[idx].appendChild(newScriptsToggler);
+		ja_mapLayer.setVisibility(ja_getOption("defaultOn"));
+		WazeWrap.Interface.AddLayerCheckbox('Road', 'Junction Angle Info', ja_getOption("defaultOn"), onLayerCheckboxChanged);
+	}
 
-				}
-
-				// JAI toggler
-				var newToggler = document.createElement('li');
-				newToggler.innerHTML = '<div class="controls-container toggler">\
-                                        <input class="layer-switcher-item_junction_angles toggle" id="layer-switcher-item_junction_angles" type="checkbox">\
-                                        <label for="layer-switcher-item_junction_angles">\
-                                          <span class="label-text">'+ ja_getMessage("name") + '</span>\
-                                        </label>\
-                                      </div>';
-
-
-				var groupScripts = document.querySelector('.layer-switcher-group_scripts').parentNode.parentNode;
-				var newScriptsChildren = groupScripts.getElementsByClassName("children")[0];
-				// insert JAI toggler at the end of children of "group_scripts"
-				newScriptsChildren.appendChild(newToggler);
-
-
-				var toggler = document.getElementById('layer-switcher-item_junction_angles');
-				var groupToggler = document.getElementById('layer-switcher-group_scripts');
-
-				// restore old state
-				groupToggler.checked = (typeof (localStorage.groupScriptsToggler) !== "undefined" ?
-					JSON.parse(localStorage.groupScriptsToggler) : true);
-
-				//Set toggler according to user preference
-				toggler.checked = ja_getOption("defaultOn");
-				toggler.disabled = !groupToggler.checked;
-
-				// togglers events
-				toggler.addEventListener('click', function (e) {
-					ja_mapLayer.setVisibility(e.target.checked);
-				});
-
-				groupToggler.addEventListener('click', function (e) {
-					toggler.disabled = !e.target.checked;
-					ja_mapLayer.setVisibility(toggler.checked ? e.target.checked : toggler.checked);
-					localStorage.setItem('groupScriptsToggler', e.target.checked);
-				});
-
-				//Set visibility according JAI's toggler and scripts group's toggler state
-				ja_mapLayer.setVisibility(toggler.checked ? groupToggler.checked : toggler.checked);
-			}
-		});
+	function onLayerCheckboxChanged(checked) {
+		ja_mapLayer.setVisibility(checked);
 	}
 
 	function ja_guess_routing_instruction(node, s_in_a, s_out_a, angles) {
@@ -2805,7 +2751,8 @@ function run_ja() {
 			if (
 				ja_is_model_ready() &&
 				ja_is_dom_ready() &&
-				window.W.loginManager.isLoggedIn()) {
+				window.W.loginManager.isLoggedIn() &&
+				WazeWrap && WazeWrap.Ready) {
 				setTimeout(function () {
 					junctionangle_init();
 				}, 500);
